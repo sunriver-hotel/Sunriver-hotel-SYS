@@ -123,7 +123,7 @@ const HomePage: React.FC = () => {
         <div className="p-3 bg-white border rounded-lg shadow-sm hover:shadow-md cursor-pointer" onClick={() => handleEditBooking(booking)}>
             <p className="font-bold">{booking.customerName}</p>
             <p className="text-sm text-gray-600">Rooms: {booking.roomIds.join(', ')} | {booking.phone}</p>
-            <p className="text-xs text-gray-500">{t('check_in_date')}: {booking.checkIn} -> {t('check_out_date')}: {booking.checkOut}</p>
+            <p className="text-xs text-gray-500">{t('check_in_date')}: {booking.checkIn} {'->'} {t('check_out_date')}: {booking.checkOut}</p>
         </div>
     );
 
