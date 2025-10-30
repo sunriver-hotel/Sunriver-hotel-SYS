@@ -28,12 +28,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           c.address,
           c.tax_id as "taxId",
           b.price_per_night as "pricePerNight",
-          ARRAY_AGG(r.room_number) as "roomIds"
+          ARRAY_AGG(r.room_number ORDER BY r.room_number) as "roomIds"
         FROM bookings b
         JOIN customers c ON b.customer_id = c.customer_id
         JOIN booking_rooms br ON b.booking_id = br.booking_id
         JOIN rooms r ON br.room_id = r.room_id
-        GROUP BY b.booking_id, c.customer_id
+        GROUP BY 
+          b.booking_id, 
+          b.created_at, 
+          c.customer_id, 
+          c.customer_name, 
+          c.phone, 
+          b.check_in_date, 
+          b.check_out_date, 
+          b.payment_status, 
+          b.deposit_amount, 
+          c.email, 
+          c.address, 
+          c.tax_id, 
+          b.price_per_night
         ORDER BY b.created_at DESC;
       `;
       return res.status(200).json(rows);
