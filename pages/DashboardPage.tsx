@@ -1,7 +1,6 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { AppContext } from '../context/AppContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TOTAL_ROOMS, ROOMS } from '../constants';
 import { parseDate } from '../utils/helpers';
 import { RoomType } from '../types';
 
@@ -13,7 +12,7 @@ const DashboardPage: React.FC = () => {
     const [popularRoomFilter, setPopularRoomFilter] = useState<'All' | RoomType>('All');
 
     if (!context) return null;
-    const { t, bookings } = context;
+    const { t, bookings, rooms } = context;
 
     const occupancyData = useMemo(() => {
         const data: { name: string, occupancy: number }[] = [];
@@ -95,7 +94,7 @@ const DashboardPage: React.FC = () => {
         const roomCounts: { [roomId: string]: number } = {};
         bookings.forEach(booking => {
             booking.roomIds.forEach(roomId => {
-                const room = ROOMS.find(r => r.id === roomId);
+                const room = rooms.find(r => r.id === roomId);
                 if (room) {
                     if (popularRoomFilter === 'All' || room.type === popularRoomFilter) {
                         roomCounts[roomId] = (roomCounts[roomId] || 0) + 1;
@@ -107,7 +106,7 @@ const DashboardPage: React.FC = () => {
             .map(([name, value]) => ({ name: `Room ${name}`, value }))
             .sort((a, b) => b.value - a.value)
             .slice(0, 10);
-    }, [bookings, popularRoomFilter]);
+    }, [bookings, popularRoomFilter, rooms]);
 
     const COLORS = ['#e6c872', '#f3e6c0', '#d1b464', '#c5a553', '#b89643'];
 
@@ -129,7 +128,7 @@ const DashboardPage: React.FC = () => {
                         <BarChart data={occupancyData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
-                            <YAxis allowDecimals={false} domain={[0, TOTAL_ROOMS]} />
+                            <YAxis allowDecimals={false} domain={[0, rooms.length]} />
                             <Tooltip formatter={(value: number) => `${value.toFixed(1)} ${t('rooms_unit')}`} />
                             <Legend />
                             <Bar dataKey="occupancy" name={t('occupied_rooms')} fill="#e6c872" />
@@ -163,7 +162,8 @@ const DashboardPage: React.FC = () => {
                                 fill="#8884d8"
                                 dataKey="value"
                                 nameKey="name"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                // Fix: Ensure 'percent' is treated as a number before performing arithmetic operations.
+                                label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                             >
                                 {popularRoomsData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

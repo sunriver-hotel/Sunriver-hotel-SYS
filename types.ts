@@ -1,4 +1,3 @@
-
 export type Language = 'en' | 'th';
 
 export interface Translations {
@@ -9,7 +8,7 @@ export interface Translations {
 
 export type RoomType = 'River view' | 'Standard view' | 'Cottage';
 export type BedType = 'Double bed' | 'Twin bed';
-export type CleaningStatus = 'CLEAN' | 'DIRTY';
+export type CleaningStatusValue = 'Clean' | 'Needs Cleaning';
 
 export interface Room {
   id: string;
@@ -18,7 +17,7 @@ export interface Room {
   floor: number;
 }
 
-export type PaymentStatus = 'PAID' | 'DEPOSIT' | 'UNPAID';
+export type PaymentStatus = 'Paid' | 'Deposit' | 'Unpaid';
 
 export interface Booking {
   id: string; // Auto-generated booking ID
@@ -27,7 +26,7 @@ export interface Booking {
   phone: string;
   checkIn: string; // date string (dd/mm/yyyy)
   checkOut: string; // date string (dd/mm/yyyy)
-  roomIds: string[]; // Changed from roomId: string
+  roomIds: string[]; 
   paymentStatus: PaymentStatus;
   depositAmount?: number;
   email?: string;
@@ -37,5 +36,5 @@ export interface Booking {
 }
 
 export interface RoomCleaningStatus {
-  [roomId: string]: CleaningStatus;
+  [roomId: string]: CleaningStatusValue;
 }

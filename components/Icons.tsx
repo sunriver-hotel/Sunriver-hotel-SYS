@@ -47,7 +47,8 @@ export const XIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 export const SunriverLogo: React.FC<React.SVGProps<SVGSVGElement> & { src?: string | null }> = ({ src, ...props }) => {
     if (src) {
-        return <img src={src} alt="Sunriver Hotel Logo" {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />;
+        // Fix: Cast to unknown first to resolve incompatible props types between SVG and Img elements.
+        return <img src={src} alt="Sunriver Hotel Logo" {...(props as unknown as React.ImgHTMLAttributes<HTMLImageElement>)} />;
     }
     return (
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" {...props}>

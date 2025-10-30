@@ -3,7 +3,6 @@ import { AppContext } from '../context/AppContext';
 import { Booking, BedType, RoomType } from '../types';
 import { SunriverLogo, PhoneIcon, LocationIcon } from '../components/Icons';
 import { calculateNights, getTodayDateString, toInputDate, fromInputDate } from '../utils/helpers';
-import { ROOMS } from '../constants';
 
 const ReceiptComponent: React.FC<{ 
     bookings: Booking[],
@@ -18,7 +17,7 @@ const ReceiptComponent: React.FC<{
 }> = ({ bookings, paymentInfo, customLogo }) => {
     const context = useContext(AppContext);
     if (!context || bookings.length === 0) return null;
-    const { t } = context;
+    const { t, rooms } = context;
 
     const customer = bookings[0];
 
@@ -44,7 +43,7 @@ const ReceiptComponent: React.FC<{
         bookings.forEach(booking => {
             const nights = calculateNights(booking.checkIn, booking.checkOut);
             booking.roomIds.forEach(roomId => {
-                const room = ROOMS.find(r => r.id === roomId);
+                const room = rooms.find(r => r.id === roomId);
                 if (!room) return;
 
                 const roomTypeName = getRoomTypeName(room.type, room.bed);
@@ -68,7 +67,7 @@ const ReceiptComponent: React.FC<{
         });
 
         return Object.values(groupedItems);
-    }, [bookings, t]);
+    }, [bookings, t, rooms]);
 
     const totalAmount = lineItems.reduce((sum, item) => sum + item.total, 0);
 

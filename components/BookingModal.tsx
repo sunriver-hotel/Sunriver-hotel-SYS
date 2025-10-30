@@ -1,6 +1,5 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
-import { ROOMS } from '../constants';
 import { Booking } from '../types';
 import { addDays, getTodayDateString, parseDate, toInputDate, fromInputDate } from '../utils/helpers';
 
@@ -25,7 +24,8 @@ const BookingModal: React.FC<{
       checkIn: checkInDate, 
       checkOut: addDays(checkInDate, 1), 
       roomIds: initialRoomIds || [], 
-      paymentStatus: 'UNPAID' as const, 
+      // Fix: Use correct case for payment status value to match the 'PaymentStatus' type.
+      paymentStatus: 'Unpaid' as const, 
       pricePerNight: 800,
       email: '', 
       address: '', 
@@ -43,7 +43,8 @@ const BookingModal: React.FC<{
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, booking, selectedDate, initialRoomIds]);
   
-  const bookings = context?.bookings ?? [];
+  if (!context || !isOpen) return null;
+  const { t, addBooking, updateBooking, bookings, rooms } = context;
 
   const availableRooms = useMemo(() => {
     const checkInDate = parseDate(formData.checkIn);
@@ -62,12 +63,9 @@ const BookingModal: React.FC<{
       })
       .flatMap(b => b.roomIds);
     
-    return ROOMS.filter(r => !bookedRoomIds.includes(r.id));
-  }, [bookings, formData.checkIn, formData.checkOut, booking]);
+    return rooms.filter(r => !bookedRoomIds.includes(r.id));
+  }, [bookings, formData.checkIn, formData.checkOut, booking, rooms]);
 
-
-  if (!context || !isOpen) return null;
-  const { t, addBooking, updateBooking } = context;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     let { name, value } = e.target;
@@ -133,7 +131,7 @@ const BookingModal: React.FC<{
                 <div className="flex items-center"><div className="w-3 h-3 rounded-sm border flex items-center justify-center font-bold text-gray-500 mr-1">T</div>Twin Bed</div>
             </div>
             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 h-48 overflow-y-auto p-1">
-                {ROOMS.sort((a,b) => a.id.localeCompare(b.id, undefined, {numeric: true})).map(r => {
+                {rooms.sort((a,b) => a.id.localeCompare(b.id, undefined, {numeric: true})).map(r => {
                     const isSelected = formData.roomIds.includes(r.id);
                     const isAvailable = availableRooms.some(ar => ar.id === r.id);
                     
@@ -167,11 +165,13 @@ const BookingModal: React.FC<{
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <select name="paymentStatus" value={formData.paymentStatus} onChange={handleChange} className="w-full p-2 border rounded">
-                <option value="UNPAID">{t('unpaid')}</option>
-                <option value="DEPOSIT">{t('deposit')}</option>
-                <option value="PAID">{t('paid')}</option>
+                {/* Fix: Use correct case for payment status values to match the 'PaymentStatus' type. */}
+                <option value="Unpaid">{t('unpaid')}</option>
+                <option value="Deposit">{t('deposit')}</option>
+                <option value="Paid">{t('paid')}</option>
             </select>
-            {formData.paymentStatus === 'DEPOSIT' && (
+            {/* Fix: Use correct case for payment status value to match the 'PaymentStatus' type. */}
+            {formData.paymentStatus === 'Deposit' && (
                 <input type="number" name="depositAmount" placeholder={t('deposit_amount')} value={formData.depositAmount || ''} onChange={handleChange} className="p-2 border rounded"/>
             )}
           </div>

@@ -1,8 +1,6 @@
-
 import React, { useState, useContext, useMemo } from 'react';
 import { AppContext } from '../context/AppContext';
-import { ROOMS } from '../constants';
-import { CleaningStatus, Room } from '../types';
+import { CleaningStatusValue, Room } from '../types';
 import { getTodayDateString, parseDate } from '../utils/helpers';
 
 const ConfirmationModal: React.FC<{
@@ -37,17 +35,17 @@ const ConfirmationModal: React.FC<{
 
 const CleaningPage: React.FC = () => {
     const context = useContext(AppContext);
-    const [modalState, setModalState] = useState<{ isOpen: boolean; room: Room | null; newStatus: CleaningStatus | null }>({ isOpen: false, room: null, newStatus: null });
+    const [modalState, setModalState] = useState<{ isOpen: boolean; room: Room | null; newStatus: CleaningStatusValue | null }>({ isOpen: false, room: null, newStatus: null });
 
     if (!context) return null;
-    const { t, bookings, cleaningStatus, updateCleaningStatus } = context;
+    const { t, bookings, cleaningStatus, updateCleaningStatus, rooms } = context;
 
     const roomDetails = useMemo(() => {
         const today = getTodayDateString();
         const todayDateObj = parseDate(today);
         todayDateObj.setHours(0, 0, 0, 0);
 
-        return ROOMS.map(room => {
+        return rooms.map(room => {
             const relevantBookings = bookings.filter(b => {
                 if (!b.roomIds.includes(room.id)) return false;
                 const checkIn = parseDate(b.checkIn);
@@ -74,13 +72,13 @@ const CleaningPage: React.FC = () => {
 
             return { room, statuses };
         });
-    }, [bookings, t]);
+    }, [bookings, t, rooms]);
 
     const sortedRooms = useMemo(() => {
       return [...roomDetails].sort((a, b) => a.room.id.localeCompare(b.room.id, undefined, { numeric: true }));
     }, [roomDetails]);
 
-    const handleStatusChangeClick = (room: Room, newStatus: CleaningStatus) => {
+    const handleStatusChangeClick = (room: Room, newStatus: CleaningStatusValue) => {
         setModalState({ isOpen: true, room, newStatus });
     };
 
@@ -97,8 +95,8 @@ const CleaningPage: React.FC = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {sortedRooms.map(({ room, statuses }) => {
-                    const currentStatus = cleaningStatus[room.id] || 'CLEAN';
-                    const isClean = currentStatus === 'CLEAN';
+                    const currentStatus = cleaningStatus[room.id] || 'Clean';
+                    const isClean = currentStatus === 'Clean';
                     const isVacant = statuses.includes(t('status_vacant'));
 
                     return (
@@ -115,7 +113,7 @@ const CleaningPage: React.FC = () => {
                                 </div>
                             </div>
                             <button
-                                onClick={() => handleStatusChangeClick(room, isClean ? 'DIRTY' : 'CLEAN')}
+                                onClick={() => handleStatusChangeClick(room, isClean ? 'Needs Cleaning' : 'Clean')}
                                 className={`w-full mt-2 p-2 rounded-md text-white font-semibold transition-colors ${isClean ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}
                             >
                                 {isClean ? t('clean') : t('dirty')}
@@ -130,7 +128,7 @@ const CleaningPage: React.FC = () => {
                 onClose={() => setModalState({ isOpen: false, room: null, newStatus: null })}
                 onConfirm={handleConfirmStatusChange}
                 title={t('confirm_status_change')}
-                message={modalState.newStatus === 'CLEAN' ? t('confirm_clean_message') : t('confirm_dirty_message')}
+                message={modalState.newStatus === 'Clean' ? t('confirm_clean_message') : t('confirm_dirty_message')}
             />
         </div>
     );

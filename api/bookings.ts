@@ -1,6 +1,15 @@
 import { sql } from '@vercel/postgres';
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { fromInputDate } from '../src/utils/helpers'; // Helper for date format
+
+// Self-contained helper to format dd/mm/yyyy to yyyy-mm-dd for PostgreSQL
+const formatDateForDB = (dateString: string): string => {
+    if (!dateString || dateString.split('/').length !== 3) {
+        // Return a value that will likely cause a DB error, which is better than silent failure
+        return 'invalid-date';
+    }
+    const [day, month, year] = dateString.split('/');
+    return `${year}-${month}-${day}`;
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -33,19 +42,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method === 'POST' || req.method === 'PUT') {
         const { id, customerName, phone, email, address, taxId, roomIds, checkIn, checkOut, paymentStatus, pricePerNight, depositAmount } = req.body;
 
-        // Basic validation
         if (!customerName || !phone || !checkIn || !checkOut || !roomIds || roomIds.length === 0) {
             return res.status(400).json({ error: 'Missing required fields.' });
         }
 
-        // The database transaction
         const client = await sql.connect();
         try {
             await client.query('BEGIN');
 
             let customerId;
-            // For PUT, find existing customer. For POST, we create a new one.
-            // Simplified logic: find or create customer based on name and phone.
             const existingCustomer = await client.query('SELECT customer_id FROM customers WHERE customer_name = $1 AND phone = $2', [customerName, phone]);
             
             if (existingCustomer.rows.length > 0) {
@@ -62,17 +67,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 customerId = newCustomer.rows[0].customer_id;
             }
             
-            // Format dates for DB
-            const dbCheckIn = fromInputDate(toInputDate(checkIn)).split('/').reverse().join('-');
-            const dbCheckOut = fromInputDate(toInputDate(checkOut)).split('/').reverse().join('-');
+            const dbCheckIn = formatDateForDB(checkIn);
+            const dbCheckOut = formatDateForDB(checkOut);
 
             if (req.method === 'POST') {
-                const bookingId = req.body.id; // Use ID generated from frontend
+                const bookingId = req.body.id;
                  await client.query(
                     'INSERT INTO bookings (booking_id, customer_id, check_in_date, check_out_date, payment_status, price_per_night, deposit_amount) VALUES ($1, $2, $3, $4, $5, $6, $7)',
                     [bookingId, customerId, dbCheckIn, dbCheckOut, paymentStatus, pricePerNight, depositAmount]
                 );
-                // Link rooms
                 for (const roomNumber of roomIds) {
                     const room = await client.query('SELECT room_id FROM rooms WHERE room_number = $1', [roomNumber]);
                     if (room.rows.length > 0) {
@@ -84,7 +87,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     'UPDATE bookings SET customer_id = $1, check_in_date = $2, check_out_date = $3, payment_status = $4, price_per_night = $5, deposit_amount = $6 WHERE booking_id = $7',
                     [customerId, dbCheckIn, dbCheckOut, paymentStatus, pricePerNight, depositAmount, id]
                 );
-                // Relink rooms
                 await client.query('DELETE FROM booking_rooms WHERE booking_id = $1', [id]);
                 for (const roomNumber of roomIds) {
                     const room = await client.query('SELECT room_id FROM rooms WHERE room_number = $1', [roomNumber]);
@@ -112,9 +114,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-
-function toInputDate(dateString: string): string {
-    if (!dateString || dateString.split('/').length !== 3) return '';
-    const [day, month, year] = dateString.split('/');
-    return `${year}-${month}-${day}`;
-};

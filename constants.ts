@@ -1,40 +1,4 @@
-import { Room, Translations } from './types';
-
-export const ROOMS: Room[] = [
-  // River view (Double bed)
-  { id: '102', type: 'River view', bed: 'Double bed', floor: 1 },
-  { id: '104', type: 'River view', bed: 'Double bed', floor: 1 },
-  { id: '206', type: 'River view', bed: 'Double bed', floor: 2 },
-  { id: '208', type: 'River view', bed: 'Double bed', floor: 2 },
-  { id: '210', type: 'River view', bed: 'Double bed', floor: 2 },
-  { id: '212', type: 'River view', bed: 'Double bed', floor: 2 },
-  { id: '302', type: 'River view', bed: 'Double bed', floor: 3 },
-  { id: '304', type: 'River view', bed: 'Double bed', floor: 3 },
-  { id: '306', type: 'River view', bed: 'Double bed', floor: 3 },
-  { id: '308', type: 'River view', bed: 'Double bed', floor: 3 },
-  { id: '310', type: 'River view', bed: 'Double bed', floor: 3 },
-  { id: '312', type: 'River view', bed: 'Double bed', floor: 3 },
-  
-  // Standard view (Double bed)
-  { id: '101', type: 'Standard view', bed: 'Double bed', floor: 1 },
-  { id: '103', type: 'Standard view', bed: 'Double bed', floor: 1 },
-  { id: '105', type: 'Standard view', bed: 'Double bed', floor: 1 },
-  { id: '205', type: 'Standard view', bed: 'Double bed', floor: 2 },
-  { id: '209', type: 'Standard view', bed: 'Double bed', floor: 2 },
-  { id: '305', type: 'Standard view', bed: 'Double bed', floor: 3 },
-  { id: '309', type: 'Standard view', bed: 'Double bed', floor: 3 },
-  
-  // Standard view (Twin bed)
-  { id: '201', type: 'Standard view', bed: 'Twin bed', floor: 2 },
-  { id: '203', type: 'Standard view', bed: 'Twin bed', floor: 2 },
-  { id: '301', type: 'Standard view', bed: 'Twin bed', floor: 3 },
-  { id: '303', type: 'Standard view', bed: 'Twin bed', floor: 3 },
-
-  // Cottage (Double bed)
-  { id: '100', type: 'Cottage', bed: 'Double bed', floor: 1 },
-];
-
-export const TOTAL_ROOMS = ROOMS.length;
+import { Translations } from './types';
 
 export const translations: Translations = {
     // General

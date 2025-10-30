@@ -1,6 +1,5 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { AppContext } from '../context/AppContext';
-import { ROOMS } from '../constants';
 import { Room, Booking } from '../types';
 import { getTodayDateString, parseDate, toInputDate, fromInputDate } from '../utils/helpers';
 import BookingModal from '../components/BookingModal';
@@ -73,13 +72,13 @@ const RoomStatusPage: React.FC = () => {
   const [selectedBookings, setSelectedBookings] = useState<Booking[]>([]);
 
   if (!context) return null;
-  const { t, bookings } = context;
+  const { t, bookings, rooms } = context;
 
   const roomDetails = useMemo(() => {
     const viewDateObj = parseDate(viewDate);
     viewDateObj.setHours(0, 0, 0, 0);
 
-    return ROOMS.map(room => {
+    return rooms.map(room => {
         const relevantBookings = bookings.filter(b => {
             if (!b.roomIds.includes(room.id)) return false;
             const checkIn = parseDate(b.checkIn);
@@ -108,7 +107,7 @@ const RoomStatusPage: React.FC = () => {
 
         return { room, bookings: uniqueBookings, statuses };
     });
-  }, [bookings, viewDate, t]);
+  }, [bookings, viewDate, t, rooms]);
 
   const sortedRooms = useMemo(() => {
     return [...roomDetails].sort((a, b) => {

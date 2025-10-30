@@ -1,6 +1,5 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
-import { TOTAL_ROOMS } from '../constants';
 import { Booking } from '../types';
 import { formatDate, getTodayDateString, parseDate, toInputDate, fromInputDate } from '../utils/helpers';
 import BookingModal from '../components/BookingModal';
@@ -10,7 +9,7 @@ const Calendar: React.FC<{ onDateClick: (date: string) => void }> = ({ onDateCli
     const [currentDate, setCurrentDate] = useState(new Date());
 
     if (!context) return null;
-    const { bookings, t, language } = context;
+    const { bookings, t, language, rooms } = context;
 
     const getBookingsForDate = (date: Date) => {
         date.setHours(0, 0, 0, 0);
@@ -35,7 +34,7 @@ const Calendar: React.FC<{ onDateClick: (date: string) => void }> = ({ onDateCli
     for (let i = 1; i <= endOfMonth.getDate(); i++) {
         const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
         const bookedCount = getBookingsForDate(dayDate);
-        const availableCount = TOTAL_ROOMS - bookedCount;
+        const availableCount = rooms.length - bookedCount;
         const isFull = availableCount <= 0;
         
         days.push(
@@ -82,7 +81,7 @@ const HomePage: React.FC = () => {
     const [viewDate, setViewDate] = useState(getTodayDateString());
 
     if (!context) return null;
-    const { t, bookings } = context;
+    const { t, bookings, rooms } = context;
 
     const handleDateClick = (dateStr: string) => {
         const bookedCount = bookings.reduce((count, b) => {
@@ -94,7 +93,7 @@ const HomePage: React.FC = () => {
             return count;
         }, 0);
 
-        if (bookedCount >= TOTAL_ROOMS) {
+        if (bookedCount >= rooms.length) {
             alert(t('fully_booked'));
             return;
         }

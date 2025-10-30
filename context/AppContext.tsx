@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { Language, Translations, Booking, RoomCleaningStatus, CleaningStatus } from '../types';
+import { Language, Translations, Booking, RoomCleaningStatus, CleaningStatusValue, Room } from '../types';
 import { translations } from '../constants';
 import { generateBookingId } from '../utils/helpers';
 
@@ -12,11 +12,12 @@ interface AppContextType {
   logout: () => void;
   activePage: string;
   setActivePage: (page: string) => void;
+  rooms: Room[];
   bookings: Booking[];
   addBooking: (booking: Omit<Booking, 'id' | 'timestamp'>) => Promise<void>;
   updateBooking: (booking: Booking) => Promise<void>;
   cleaningStatus: RoomCleaningStatus;
-  updateCleaningStatus: (roomId: string, status: CleaningStatus) => Promise<void>;
+  updateCleaningStatus: (roomId: string, status: CleaningStatusValue) => Promise<void>;
   customLogo: string | null;
   setCustomLogo: (logo: string | null) => void;
   isLoading: boolean;
@@ -28,6 +29,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [language, setLanguage] = useState<Language>('en');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activePage, setActivePage] = useState('home');
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [cleaningStatus, setCleaningStatus] = useState<RoomCleaningStatus>({});
   const [customLogo, setCustomLogoState] = useState<string | null>(() => localStorage.getItem('customLogo'));
@@ -36,13 +38,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [bookingsRes, cleaningStatusRes] = await Promise.all([
+      const [roomsRes, bookingsRes, cleaningStatusRes] = await Promise.all([
+        fetch('/api/rooms'),
         fetch('/api/bookings'),
         fetch('/api/cleaning_status')
       ]);
+      const roomsData = await roomsRes.json();
       const bookingsData = await bookingsRes.json();
       const cleaningStatusData = await cleaningStatusRes.json();
 
+      setRooms(roomsData);
       setBookings(bookingsData);
       setCleaningStatus(cleaningStatusData);
 
@@ -117,7 +122,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
   
-  const updateCleaningStatus = async (roomId: string, status: CleaningStatus) => {
+  const updateCleaningStatus = async (roomId: string, status: CleaningStatusValue) => {
     setCleaningStatus(prev => ({ ...prev, [roomId]: status })); // Optimistic update
     try {
       const response = await fetch('/api/cleaning_status', {
@@ -153,6 +158,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       logout,
       activePage,
       setActivePage,
+      rooms,
       bookings,
       addBooking,
       updateBooking,
