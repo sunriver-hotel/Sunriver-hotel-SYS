@@ -15,6 +15,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === 'GET') {
       const { rows } = await sql`
+        WITH RoomNumbers AS (
+            SELECT
+                br.booking_id,
+                ARRAY_AGG(r.room_number ORDER BY r.room_number) as "roomIds"
+            FROM booking_rooms br
+            JOIN rooms r ON br.room_id = r.room_id
+            GROUP BY br.booking_id
+        )
         SELECT 
           b.booking_id as id,
           b.created_at as timestamp,
@@ -28,28 +36,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           c.address,
           c.tax_id as "taxId",
           b.price_per_night as "pricePerNight",
-          ARRAY_AGG(r.room_number ORDER BY r.room_number) as "roomIds"
+          rn."roomIds"
         FROM bookings b
         JOIN customers c ON b.customer_id = c.customer_id
-        JOIN booking_rooms br ON b.booking_id = br.booking_id
-        JOIN rooms r ON br.room_id = r.room_id
-        GROUP BY 
-          b.booking_id, 
-          b.created_at, 
-          c.customer_id, 
-          c.customer_name, 
-          c.phone, 
-          b.check_in_date, 
-          b.check_out_date, 
-          b.payment_status, 
-          b.deposit_amount, 
-          c.email, 
-          c.address, 
-          c.tax_id, 
-          b.price_per_night
+        LEFT JOIN RoomNumbers rn ON b.booking_id = rn.booking_id
         ORDER BY b.created_at DESC;
       `;
-      return res.status(200).json(rows);
+      // Handle cases where a booking might not have rooms yet (though unlikely with current logic)
+      const sanitizedRows = rows.map(row => ({ ...row, roomIds: row.roomIds || [] }));
+      return res.status(200).json(sanitizedRows);
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
